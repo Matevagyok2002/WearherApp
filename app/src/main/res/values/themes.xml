@@ -1,0 +1,33 @@
+<resources>
+
+    <style name="Base.Theme.WeatherForecastApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/blue</item>
+    </style>
+
+    <style name="Button">
+        <item name="android:gravity">center</item>
+        <item name="android:layout_height">80sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="backgroundTint">@color/blue</item>
+        <item name="elevation">2dp</item>
+        <item name="cornerRadius">10sp</item>
+        <item name="rippleColor">@color/white</item>
+        <item name="strokeColor">@color/white</item>
+        <item name="strokeWidth">2sp</item>
+    </style>
+
+    <style name="LargeButton" parent="@style/Button">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_marginHorizontal">30sp</item>
+    </style>
+
+    <style name="MapButton" parent="@style/Button">
+        <item name="android:layout_marginEnd">16sp</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+
+    <style name="Theme.WeatherForecastApp" parent="Base.Theme.WeatherForecastApp" />
+
+</resources>
