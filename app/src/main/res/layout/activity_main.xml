@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    style="@style/Background"
     tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/blue"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,7 +22,6 @@
             android:layout_margin="10sp"
             android:text="@string/app_name"
             android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
             android:textColor="@color/white"
             android:textSize="40sp"
             android:textStyle="bold" />
@@ -46,7 +42,7 @@
             android:background="@color/white"
             android:padding="14sp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="20sp"
+            app:cardCornerRadius="16sp"
             app:contentPadding="20sp">
 
             <LinearLayout
@@ -129,16 +125,18 @@
         </androidx.cardview.widget.CardView>
 
         <Button
+            android:id="@+id/showHourlyButton"
             style="@style/LargeButton"
             android:layout_width="match_parent"
             android:layout_marginBottom="14sp"
             android:text="@string/show_hourly_forecast_button" />
 
         <Button
+            android:id="@+id/showDailyButton"
             style="@style/LargeButton"
             android:layout_width="match_parent"
             android:layout_marginBottom="14sp"
-            android:text="@string/show_weekly_forecast_button" />
+            android:text="@string/show_daily_forecast_button" />
 
     </LinearLayout>
 

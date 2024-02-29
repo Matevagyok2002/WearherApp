@@ -28,6 +28,8 @@
         </activity>
 
         <activity android:name=".MapActivity" />
+        <activity android:name=".HourlyActivity" />
+        <activity android:name=".DailyActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

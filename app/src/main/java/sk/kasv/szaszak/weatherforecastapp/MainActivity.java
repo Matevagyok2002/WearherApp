@@ -18,7 +18,6 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,17 +26,21 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import sk.kasv.szaszak.weatherforecastapp.weather.CurrentWeather;
+import sk.kasv.szaszak.weatherforecastapp.weather.WeatherForecast;
+import sk.kasv.szaszak.weatherforecastapp.weather.WeatherService;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ImageView iconImageView;
 
     private LatLng location = new LatLng(0, 0);
-
+    private WeatherForecast weatherForecast;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
     private final ActivityResultLauncher<Intent> mapLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -65,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     });
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,13 +81,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         descriptionTextView = findViewById(R.id.description);
         iconImageView = findViewById(R.id.icon);
 
-        Button selectLocationButton = findViewById(R.id.selectLocationButton);
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
 
 
-        selectLocationButton.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.selectLocationButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
@@ -93,8 +93,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-    }
+        findViewById(R.id.showHourlyButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, HourlyActivity.class);
+                intent.putExtra("hourlyWeatherList", (Serializable) weatherForecast.getHourlyWeather());
+                startActivity(intent);
+            }
+        });
 
+        findViewById(R.id.showDailyButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DailyActivity.class);
+                intent.putExtra("dailyWeatherList", (Serializable) weatherForecast.getDailyWeather());
+                startActivity(intent);
+            }
+        });
+    }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -189,20 +205,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             String finalResult = result;
-            CurrentWeather currentWeather = new CurrentWeather(finalResult, getLocationName(location));
+            weatherForecast = new WeatherForecast(finalResult, getLocationName(location));
+            CurrentWeather currentWeather = weatherForecast.getCurrentWeather();
             runOnUiThread(() -> {
-                cityTextView.setText(currentWeather.getCity());
+                cityTextView.setText(weatherForecast.getLocation());
                 temperatureTextView.setText(String.valueOf(currentWeather.getTemperature()));
                 dateTextView.setText(currentWeather.getDate());
                 timeTextView.setText(currentWeather.getTime());
                 descriptionTextView.setText(currentWeather.getDescription());
 
                 int resourceId = getResources().getIdentifier(currentWeather.getIcon(), "drawable", getPackageName());
-
-// Convert the resource ID to a URI
                 Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + resourceId);
-
-// Load the image using Picasso
                 Picasso.get().load(uri).into(iconImageView);
             });
 

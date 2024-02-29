@@ -1,7 +1,7 @@
 <resources>
 
     <style name="Base.Theme.WeatherForecastApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@color/blue</item>
+        <item name="android:statusBarColor">@color/black</item>
     </style>
 
     <style name="Button">
@@ -10,9 +10,9 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">30sp</item>
         <item name="android:fontFamily">sans-serif-light</item>
-        <item name="backgroundTint">@color/blue</item>
+        <item name="backgroundTint">@android:color/transparent</item>
         <item name="elevation">2dp</item>
-        <item name="cornerRadius">10sp</item>
+        <item name="cornerRadius">16sp</item>
         <item name="rippleColor">@color/white</item>
         <item name="strokeColor">@color/white</item>
         <item name="strokeWidth">2sp</item>
@@ -26,6 +26,24 @@
     <style name="MapButton" parent="@style/Button">
         <item name="android:layout_marginEnd">16sp</item>
         <item name="android:layout_width">wrap_content</item>
+        <item name="android:backgroundTint">@color/shade</item>
+    </style>
+
+    <style name="Background">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/background</item>
+    </style>
+
+    <style name="ItemCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginHorizontal">30sp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="cardCornerRadius">16sp</item>
+        <item name="contentPaddingLeft">16sp</item>
+        <item name="contentPaddingRight">16sp</item>
     </style>
 
     <style name="Theme.WeatherForecastApp" parent="Base.Theme.WeatherForecastApp" />

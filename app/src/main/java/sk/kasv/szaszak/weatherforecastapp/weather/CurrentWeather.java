@@ -1,30 +1,27 @@
-package sk.kasv.szaszak.weatherforecastapp;
+package sk.kasv.szaszak.weatherforecastapp.weather;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.Date;
 
-public class CurrentWeather {
+import sk.kasv.szaszak.weatherforecastapp.Util;
 
-    private String city;
+public class CurrentWeather {
     private String date;
     private String time;
     private double temperature;
     private String description;
     private String icon;
 
-    public CurrentWeather(String json, String city) {
+    public CurrentWeather(JsonObject currentObject) {
 
         try {
 
-            JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-            JsonObject currentObject = jsonObject.get("current").getAsJsonObject();
             JsonObject iconObject = currentObject.get("weather").getAsJsonArray().get(0).getAsJsonObject();
             Date dt = new Date(currentObject.get("dt").getAsLong() * 1000);
             String description = iconObject.get("description").toString().replace("\"", "");
 
-            this.city = city;
             this.date = Util.getDate(dt);
             this.time = Util.getTime(dt);
             this.temperature = Math.round(currentObject.get("temp").getAsDouble());
@@ -35,10 +32,6 @@ public class CurrentWeather {
         {
             //
         }
-    }
-
-    public String getCity() {
-        return city;
     }
 
     public String getDate() {

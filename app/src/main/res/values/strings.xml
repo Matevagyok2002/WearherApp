@@ -7,7 +7,7 @@
 
     <string name="select_location_button">Select location</string>
     <string name="show_hourly_forecast_button">Show hourly forecast</string>
-    <string name="show_weekly_forecast_button">Show weekly forecast</string>
+    <string name="show_daily_forecast_button">Show daily forecast</string>
     <string name="confirm_selection_button">Select</string>
     <string name="back_button">Back</string>
 </resources>

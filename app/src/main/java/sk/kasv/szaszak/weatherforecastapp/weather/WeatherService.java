@@ -1,4 +1,4 @@
-package sk.kasv.szaszak.weatherforecastapp;
+package sk.kasv.szaszak.weatherforecastapp.weather;
 
 import com.google.android.gms.maps.model.LatLng;
 
