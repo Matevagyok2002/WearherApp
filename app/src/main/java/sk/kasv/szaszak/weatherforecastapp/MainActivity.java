@@ -3,7 +3,6 @@ package sk.kasv.szaszak.weatherforecastapp;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -17,17 +16,16 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.LocaleList;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.squareup.picasso.Picasso;
 
@@ -35,18 +33,17 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import sk.kasv.szaszak.weatherforecastapp.weather.CurrentWeather;
 import sk.kasv.szaszak.weatherforecastapp.weather.WeatherForecast;
 import sk.kasv.szaszak.weatherforecastapp.weather.WeatherService;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_LOCATION_PERMISSION = 1;
-    private static final int REQUEST_SELECT_LOCATION = 100;
     private FusedLocationProviderClient fusedLocationClient;
+    private GestureDetector gestureDetector;
 
     private TextView cityTextView;
     private TextView temperatureTextView;
@@ -55,9 +52,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView timeTextView;
     private ImageView iconImageView;
 
-    private LatLng location = new LatLng(0, 0);
+    private boolean foundExactLocation = true;
+    private LatLng location;
     private WeatherForecast weatherForecast;
-    private final Executor executor = Executors.newSingleThreadExecutor();
+    private Geocoder geocoder;
 
     private final ActivityResultLauncher<Intent> mapLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == Activity.RESULT_OK) {
@@ -81,15 +79,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         descriptionTextView = findViewById(R.id.description);
         iconImageView = findViewById(R.id.icon);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        getLocationPermission();
-
-
         findViewById(R.id.selectLocationButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
-                mapLauncher.launch(mapIntent);
+                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                intent.putExtra("location", location);
+                mapLauncher.launch(intent);
             }
         });
 
@@ -110,26 +105,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(intent);
             }
         });
-    }
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+        geocoder = new Geocoder(this, Locale.getDefault());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        getLocationPermission();
 
-        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
-            public void onMapClick(@NonNull LatLng latLng) {
-                googleMap.clear();
-                googleMap.addMarker(new MarkerOptions().position(latLng).title(getLocationName(latLng))
-                        .draggable(true));
-                MainActivity.this.location = latLng;
+            public boolean onDoubleTap(@NonNull MotionEvent e) {
+                getLocationPermission();
+                return true;
             }
         });
-    }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
+        findViewById(R.id.mainCardView).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                return true;
+            }
+        });
     }
 
     private void getLocationPermission() {
@@ -148,15 +143,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_SELECT_LOCATION && resultCode == Activity.RESULT_OK && data != null) {
-            LatLng selectedLocation = data.getParcelableExtra("selected_location");
-            // Handle the selected location
-        }
-    }
-
     public void setLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -165,18 +151,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         @Override
                         public void onSuccess(Location userLocation) {
                             if (userLocation != null) {
+                                foundExactLocation = true;
                                 location = new LatLng(userLocation.getLatitude(), userLocation.getLongitude());
+                            }
+                            else {
+                                location = getLocationByLocale();
                             }
                             loadWeatherData();
                         }
                     });
         }
-        else
+        else {
+            location = getLocationByLocale();
             loadWeatherData();
+        }
     }
 
     public String getLocationName(LatLng location) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
              geocoder.getFromLocation(location.latitude, location.longitude, 1);
@@ -185,7 +176,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String city = address.getLocality();
                 String country = address.getCountryName();
 
-                return city != null ? city + ", " + country : country;
+                if (foundExactLocation)
+                    return city != null ? city + ", " + country : country;
+                else
+                    return country;
             }
             else {
                 return "Unknown location";
@@ -195,8 +189,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    public LatLng getLocationByLocale() {
+        foundExactLocation = false;
+        LocaleList currentLocales = getResources().getConfiguration().getLocales();
+        String locationName = currentLocales.get(0).getDisplayCountry();
+
+        try {
+
+            List<Address> addresses = geocoder.getFromLocationName(locationName, 1);
+            if (addresses != null && addresses.size() > 0) {
+                Address address = addresses.get(0);
+                return new LatLng(address.getLatitude(), address.getLongitude());
+            }
+            else {
+                return new LatLng(0, 0);
+            }
+        } catch (IOException e) {
+            return new LatLng(0, 0);
+        }
+    }
+
     public void loadWeatherData() {
-        executor.execute(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             String result = null;
             try {
                 result = WeatherService.requestData(location);
@@ -206,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String finalResult = result;
             weatherForecast = new WeatherForecast(finalResult, getLocationName(location));
+            foundExactLocation = true;
             CurrentWeather currentWeather = weatherForecast.getCurrentWeather();
             runOnUiThread(() -> {
                 cityTextView.setText(weatherForecast.getLocation());
@@ -221,4 +236,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         });
     }
+
 }
